@@ -35,8 +35,11 @@ jobs:
           NEW_TAG="v${NEW_MAJOR}.0.0"
           echo "New tag: $NEW_TAG"
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
-
-      - name: Create and push tag
+          
+      - name: Create and push tag using PAT
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git tag ${{ steps.bump.outputs.new_tag }}
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
           git push origin ${{ steps.bump.outputs.new_tag }}
