@@ -1,0 +1,13 @@
+version: "3.8"
+name: "wild-workout-microservice"
+
+services:
+  firestore-emulator:
+    build:
+      context: docker/firestore-emulator
+    env_file:
+      - .env
+    ports:
+      - "8787:8787"
+      - "4000:4000"
+    restart: unless-stopped
