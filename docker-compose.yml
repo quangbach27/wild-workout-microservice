@@ -2,6 +2,22 @@ version: "3.8"
 name: "wild-workout-microservice"
 
 services:
+  trainer-http:
+    build:
+      context: docker/app
+    working_dir: /internal/trainer
+    volumes:
+      - ./internal:/internal
+    env_file:
+      - .env
+    ports:
+      - "3000:$PORT"
+    environment:
+      SERVER_TO_RUN: http
+    depends_on:
+      - firestore-emulator
+    restart: unless-stopped
+
   firestore-emulator:
     build:
       context: docker/firestore-emulator
