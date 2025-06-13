@@ -7,4 +7,4 @@ openapi_http:
 
 .PHONY: test
 test:
-	@./scripts/test.sh trainer .test.env
+	@./scripts/test.sh trainer

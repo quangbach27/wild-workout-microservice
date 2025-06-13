@@ -2,7 +2,10 @@ module github.com/quangbach27/wild-workout-microservice/internal/trainer
 
 go 1.24.3
 
-require github.com/stretchr/testify v1.10.0
+require (
+	github.com/pkg/errors v0.9.1
+	github.com/stretchr/testify v1.10.0
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
