@@ -2,14 +2,17 @@ package hour_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/quangbach27/wild-workout-microservice/internal/trainer/domain/hour"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var testHourFactory = hour.NewHourFactory()
+var testHourFactory = hour.MustNewHourFactory(hour.HourFactoryConfig{
+	MaxWeeksInTheFutureToSet: 100,
+	MinUtcHour:               0,
+	MaxUtcHour:               24,
+})
 
 func TestHour_MakeNotAvailable(t *testing.T) {
 	h, err := testHourFactory.NewAvailableHour(validTrainingHour())
@@ -99,8 +102,4 @@ func newNotAvailableHour(t *testing.T) *hour.Hour {
 	require.NoError(t, err)
 
 	return h
-}
-
-func validTrainingHour() time.Time {
-	return time.Now()
 }
