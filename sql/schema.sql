@@ -12,15 +12,14 @@ CREATE TYPE availability_status AS ENUM (
 
 -- Create dates table
 CREATE TABLE dates (
-    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    date DATE NOT NULL UNIQUE
+    date DATE NOT NULL UNIQUE,
+    PRIMARY KEY(date)
 );
 
 -- Create hours table
 CREATE TABLE hours (
-    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     hour TIMESTAMP NOT NULL,
     availability availability_status NOT NULL,
-    date_id UUID NOT NULL REFERENCES dates(uuid) ON DELETE CASCADE,
-    UNIQUE (date_id, hour)
+    date_time DATE NOT NULL REFERENCES dates(date) ON DELETE CASCADE,
+    PRIMARY KEY (hour)
 );
