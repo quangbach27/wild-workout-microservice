@@ -20,6 +20,6 @@ CREATE TABLE dates (
 CREATE TABLE hours (
     hour TIMESTAMP NOT NULL,
     availability availability_status NOT NULL,
-    date_time DATE NOT NULL REFERENCES dates(date) ON DELETE CASCADE,
+    date DATE NOT NULL REFERENCES dates(date) ON DELETE CASCADE,
     PRIMARY KEY (hour)
 );
