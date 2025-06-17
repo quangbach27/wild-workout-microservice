@@ -2,6 +2,26 @@ version: "3.8"
 name: "wild-workout-microservice"
 
 services:
+  trainer-http:
+    build:
+      context: docker/app
+    volumes:
+      - ./internal:/internal
+      - ./.go/pkg:/go/pkg
+      - ./.go-cache:/go-cache
+    working_dir: /internal/trainer
+    ports:
+      - "3000:$PORT"
+      - "40000:40000"     # Delve debug port
+    env_file:
+      - .env
+    environment:
+      SERVER_TO_RUN: http
+      GOCACHE: /go-cache
+      DEBUG: true
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:14
     env_file:
