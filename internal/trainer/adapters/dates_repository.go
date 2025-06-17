@@ -3,7 +3,6 @@ package adapters
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -54,44 +53,53 @@ func (repository DatesRepository) AvailableHours(ctx context.Context, from time.
 		return nil, err
 	}
 
+	// Convert raw date models to structured dateModels
 	dateModels, err := unmarshalDateModels(rawDateModels)
 	if err != nil {
 		return nil, err
 	}
 
-	var queryDates []query.Date
-
-	for _, dateModel := range dateModels {
-		currentDate := dateModel.Date
-		if currentDate.After(to) {
-			break
-		} else if currentDate.Equal(from) || dateModel.Date.Equal(to) {
-			// convert dateModel to App
-			// if len()
-			queryDate := repository.convertAndSetDefaultAvailability(dateModel)
-			queryDates = append(queryDates, queryDate)
-		} else {
-			// loop from From_Date to currentDate
-			for day := from; day.Before(currentDate); day = day.AddDate(0, 0, 1) {
-				queryDate := repository.convertAndSetDefaultAvailability(DateModel{
-					Date:  day,
-					Hours: nil,
-				})
-				queryDates = append(queryDates, queryDate)
-			}
-		}
-		from = currentDate.AddDate(0, 0, 1)
+	queryDates, err := repository.dateModelsToApp(dateModels, from, to)
+	if err != nil {
+		return nil, err
 	}
-	fmt.Println("queryDates: ", queryDates)
-
-	return queryDates, err
+	return queryDates, nil
 }
 
-func (repository DatesRepository) convertAndSetDefaultAvailability(dateModel DateModel) query.Date {
-	rangeHour := repository.hourFactoryConfig.MaxUtcHour - repository.hourFactoryConfig.MinUtcHour
+func (repository DatesRepository) dateModelsToApp(dateModels []DateModel, from, to time.Time) ([]query.Date, error) {
+	dayMaps := make(map[time.Time]DateModel)
+	for _, dateModel := range dateModels {
+		dayMaps[dateModel.Date] = dateModel
+	}
+
+	var queryDates []query.Date
+	for day := from; !day.After(to); day = day.AddDate(0, 0, 1) {
+		var queryDate query.Date
+		var err error
+
+		if dateModel, ok := dayMaps[day]; ok {
+			queryDate, err = repository.convertAndSetDefaultAvailability(dateModel)
+		} else {
+			queryDate, err = repository.convertAndSetDefaultAvailability(DateModel{
+				Date:  day,
+				Hours: nil,
+			})
+		}
+
+		if err != nil {
+			return nil, err
+		}
+		queryDates = append(queryDates, queryDate)
+	}
+
+	return queryDates, nil
+}
+
+func (repository DatesRepository) convertAndSetDefaultAvailability(dateModel DateModel) (query.Date, error) {
+	day := dateModel.Date
 	date := query.Date{
 		Date:  dateModel.Date,
-		Hours: make([]query.Hour, rangeHour),
+		Hours: []query.Hour{},
 	}
 
 	hourMap := make(map[time.Time]HourModel)
@@ -100,17 +108,23 @@ func (repository DatesRepository) convertAndSetDefaultAvailability(dateModel Dat
 	}
 
 	for h := repository.hourFactoryConfig.MinUtcHour; h <= repository.hourFactoryConfig.MaxUtcHour; h++ {
-		hour := time.Date(dateModel.Date.Year(), dateModel.Date.Month(), dateModel.Date.Day(), h, 0, 0, 0, time.UTC)
+		hour := time.Date(day.Year(), day.Month(), day.Day(), h, 0, 0, 0, time.UTC)
 
 		if hourModel, ok := hourMap[hour]; ok {
 			availability, err := domainHour.NewAvailabilityFromString(hourModel.Availability)
 			if err != nil {
-				continue
+				return query.Date{}, err
 			}
 
 			if availability.IsAvailable() && !date.HasFreeHours {
 				date.HasFreeHours = true
 			}
+			newHour := query.Hour{
+				Hour:                 hourModel.Hour,
+				HasTrainingScheduled: availability.HasTrainingScheduled(),
+				Available:            availability.IsAvailable(),
+			}
+			date.Hours = append(date.Hours, newHour)
 			continue
 		}
 
@@ -122,11 +136,11 @@ func (repository DatesRepository) convertAndSetDefaultAvailability(dateModel Dat
 		date.Hours = append(date.Hours, newHour)
 	}
 
-	return date
+	return date, nil
 }
 
 func unmarshalDateModels(rawModels []RawDateModels) ([]DateModel, error) {
-	dateModels := make([]DateModel, len(rawModels))
+	var dateModels []DateModel
 
 	for _, raw := range rawModels {
 		var hours []HourModel
