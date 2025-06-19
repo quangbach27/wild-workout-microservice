@@ -30,7 +30,8 @@ func NewApplication(ctx context.Context) app.Application {
 			AvailableHours: query.NewAvailableHoursHandler(datesRepository, logger),
 		},
 		Commands: app.Commands{
-			MakeHoursAvailable: command.NewMakeHoursAvailableHandler(hourRepository, logger),
+			MakeHoursAvailable:    command.NewMakeHoursAvailableHandler(hourRepository, logger),
+			MakeHoursNotAvailable: command.NewMakeHoursNotAvailableHandler(hourRepository, logger),
 		},
 	}
 }

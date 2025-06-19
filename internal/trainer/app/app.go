@@ -14,5 +14,6 @@ type Queries struct {
 	AvailableHours query.AvailableHoursHandler
 }
 type Commands struct {
-	MakeHoursAvailable command.MakeHoursAvailableHandler
+	MakeHoursAvailable    command.MakeHoursAvailableHandler
+	MakeHoursNotAvailable command.MakeHoursNotAvailableHandler
 }

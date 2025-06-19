@@ -53,8 +53,19 @@ func (httpServer HttpServer) MakeHourAvailable(w http.ResponseWriter, r *http.Re
 }
 
 // (PUT /trainer/calendar/make-hour-unavailable)
-func (_ HttpServer) MakeHourUnavailable(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+func (httpSever HttpServer) MakeHourUnavailable(w http.ResponseWriter, r *http.Request) {
+	hourUpdate := &HourUpdate{}
+	if err := render.Decode(r, hourUpdate); err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	err := httpSever.app.Commands.MakeHoursNotAvailable.Handle(r.Context(), command.MakeHoursNotAvailableCommand{Hours: hourUpdate.Hours})
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func dateModelsToResponse(models []query.Date) []Date {
