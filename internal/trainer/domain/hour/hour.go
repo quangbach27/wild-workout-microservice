@@ -60,3 +60,7 @@ func (h *Hour) CancelTraining() error {
 	h.availability = Available
 	return nil
 }
+
+func (h *Hour) Equal(otherHour Hour) bool {
+	return h.hour.Equal(otherHour.hour) && h.availability.Equal(otherHour.availability)
+}

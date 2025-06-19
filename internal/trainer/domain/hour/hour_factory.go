@@ -98,6 +98,20 @@ func (f HourFactory) NewNotAvailableHour(hour time.Time) (*Hour, error) {
 		availability: NotAvailable,
 	}, nil
 }
+func (f HourFactory) UnmarshalHourFromDatabase(hour time.Time, availability Availability) (*Hour, error) {
+	if err := f.validateTime(hour); err != nil {
+		return nil, err
+	}
+
+	if availability.IsZero() {
+		return nil, errors.New("empty availability")
+	}
+
+	return &Hour{
+		hour:         hour,
+		availability: availability,
+	}, nil
+}
 
 func (f HourFactory) validateTime(hour time.Time) error {
 	if !hour.Round(time.Hour).Equal(hour) {

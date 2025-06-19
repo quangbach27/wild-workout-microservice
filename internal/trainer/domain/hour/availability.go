@@ -42,3 +42,7 @@ func (a Availability) IsAvailable() bool {
 func (a Availability) HasTrainingScheduled() bool {
 	return a == TrainingScheduled
 }
+
+func (a Availability) Equal(otherA Availability) bool {
+	return a.value == otherA.value
+}
