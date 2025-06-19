@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"github.com/quangbach27/wild-workout-microservice/internal/trainer/app/command"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -20,8 +21,8 @@ func NewHttpServer(application app.Application) HttpServer {
 	}
 }
 
-func (http HttpServer) GetTrainerAvailableHours(w http.ResponseWriter, r *http.Request, params GetTrainerAvailableHoursParams) {
-	dateApps, err := http.app.Queries.AvailableHours.Handle(r.Context(), query.AvailableHours{
+func (httpServer HttpServer) GetTrainerAvailableHours(w http.ResponseWriter, r *http.Request, params GetTrainerAvailableHoursParams) {
+	dateApps, err := httpServer.app.Queries.AvailableHours.Handle(r.Context(), query.AvailableHours{
 		From: params.DateFrom,
 		To:   params.DateTo,
 	})
@@ -35,8 +36,20 @@ func (http HttpServer) GetTrainerAvailableHours(w http.ResponseWriter, r *http.R
 }
 
 // (PUT /trainer/calendar/make-hour-available)
-func (_ HttpServer) MakeHourAvailable(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+func (httpServer HttpServer) MakeHourAvailable(w http.ResponseWriter, r *http.Request) {
+	hourUpdate := &HourUpdate{}
+	if err := render.Decode(r, hourUpdate); err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	err := httpServer.app.Commands.MakeHoursAvailable.Handle(r.Context(), command.MakeHoursAvailableCommand{Hours: hourUpdate.Hours})
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // (PUT /trainer/calendar/make-hour-unavailable)

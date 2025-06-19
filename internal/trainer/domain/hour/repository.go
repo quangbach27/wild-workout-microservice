@@ -11,5 +11,5 @@ type HourRepository interface {
 		ctx context.Context,
 		hourTime time.Time,
 		updateFn func(h *Hour) (*Hour, error),
-	)
+	) error
 }
