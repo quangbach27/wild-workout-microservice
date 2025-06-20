@@ -8,3 +8,6 @@ openapi_http:
 .PHONY: test
 test:
 	@./scripts/test.sh trainer
+
+migrate_create:
+	migrate create -ext sql -dir sql/migrations/ -seq $(file)
