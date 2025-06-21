@@ -4,6 +4,7 @@ export
 .PHONY: openapi_http
 openapi_http:
 	@./scripts/openapi-http.sh trainer internal/trainer/ports ports
+	@./scripts/openapi-http.sh training internal/training/ports ports
 
 .PHONY: proto
 proto:
